@@ -4,11 +4,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import se.magnus.api.core.product.Product;
 import se.magnus.api.core.product.ProductService;
+import se.magnus.api.exceptions.InvalidInputException;      // ★ 추가 ①
+import se.magnus.api.exceptions.NotFoundException;          // ★ 추가 ①
 import se.magnus.util.http.ServiceUtil;
 
 @RestController
 public class ProductServiceImpl implements ProductService {
-    private final ServiceUtil serviceUtil;      // 필드 선언 필수
+    private final ServiceUtil serviceUtil;
 
     public ProductServiceImpl(ServiceUtil serviceUtil) {
         this.serviceUtil = serviceUtil;
@@ -16,6 +18,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product getProduct(int productId) {
+        if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);               // ★ 추가 ②
+        if (productId == 13) throw new NotFoundException("No product found for productId: " + productId);     // ★ 추가 ②
         return new Product(productId, "name-" + productId, 123, serviceUtil.getServiceAddress());
     }
 }

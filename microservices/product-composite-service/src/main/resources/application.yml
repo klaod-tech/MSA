@@ -1,0 +1,19 @@
+server.port: 7001
+spring.web.error.include-message: always                       # ★ 교재와 다름 (교재: server.error.include-message)
+spring.jackson.mapper.allow-final-fields-as-mutators: true     # ★ 교재에 없음 (Boot 4 대응, 5번 참고)
+
+app:
+  product-service:
+    host: localhost
+    port: 7002
+  recommendation-service:
+    host: localhost
+    port: 7003
+  review-service:
+    host: localhost
+    port: 7004
+
+logging:
+  level:
+    root: INFO
+    se.magnus: DEBUG
