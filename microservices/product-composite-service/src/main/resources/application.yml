@@ -1,6 +1,6 @@
 server.port: 7001
-spring.web.error.include-message: always                       # ★ 교재와 다름 (교재: server.error.include-message)
-spring.jackson.mapper.allow-final-fields-as-mutators: true     # ★ 교재에 없음 (Boot 4 대응, 5번 참고)
+spring.web.error.include-message: always
+spring.jackson.mapper.allow-final-fields-as-mutators: true
 
 app:
   product-service:
@@ -17,3 +17,20 @@ logging:
   level:
     root: INFO
     se.magnus: DEBUG
+
+# ★ 추가 시작 (13줄)
+---
+spring.config.activate.on-profile: docker
+server.port: 8080
+
+app:
+  product-service:
+    host: product
+    port: 8080
+  recommendation-service:
+    host: recommendation
+    port: 8080
+  review-service:
+    host: review
+    port: 8080
+# ★ 추가 끝

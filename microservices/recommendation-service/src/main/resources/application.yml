@@ -6,3 +6,10 @@ logging:
   level:
     root: INFO
     se.magnus: DEBUG
+
+# ★ 추가 시작 (3줄)
+---
+spring.config.activate.on-profile: docker
+
+server.port: 8080
+# ★ 추가 끝
