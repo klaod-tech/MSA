@@ -1,15 +1,25 @@
 spring.application.name: recommendation-service
+
 server.port: 7003
-spring.web.error.include-message: always
+# ★ 변경 시작 (전 1줄 → 5줄) — "전:" 줄은 지우고 그 아래 줄로 바꾼다
+# ★ 전: spring.web.error.include-message: always
+spring.web.error.include-message: always  # (교재: server.error.include-message, 3장부터 우리 값 유지)
+
+spring.mongodb:  # ★ 참고: 교재: spring.data.mongodb:
+  host: localhost
+  port: 27017
+  database: recommendation-db
+# ★ 변경 끝
 
 logging:
   level:
     root: INFO
     se.magnus: DEBUG
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG  # ★ 추가
 
-# ★ 추가 시작 (3줄)
 ---
 spring.config.activate.on-profile: docker
 
 server.port: 8080
-# ★ 추가 끝
+
+spring.mongodb.host: mongodb  # ★ 추가 — 교재: spring.data.mongodb.host

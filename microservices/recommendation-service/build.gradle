@@ -3,11 +3,9 @@ plugins {
 	id 'org.springframework.boot' version '4.0.9'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
-// ★ 추가 시작 (3줄)
 jar {
 	enabled = false
 }
-// ★ 추가 끝
 group = 'se.magnus.microservices.core.recommendation'
 version = '1.0.0-SNAPSHOT'
 
@@ -16,6 +14,12 @@ java {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
+
+// ★ 추가 시작 (3줄)
+ext {
+	mapstructVersion = '1.6.3'
+}
+// ★ 추가 끝
 
 repositories {
 	mavenCentral()
@@ -27,9 +31,24 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-actuator-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webflux-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	// ★ 추가 시작 (2줄)
 	implementation project(':api')
 	implementation project(':util')
+	// ★ 추가 시작 (12줄)
+	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+	implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+
+	compileOnly "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+	annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+	testAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+	compileOnly 'org.projectlombok:lombok'  // ★ 참고: 교재에는 없음, Lombok 엔티티용
+	annotationProcessor 'org.projectlombok:lombok'  // ★ 참고: 교재에는 없음, Lombok 엔티티용
+	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'  // ★ 참고: 교재에는 없음, Lombok 엔티티용: MapStruct가 Lombok 결과를 기다리게 함
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-data-mongodb-test'  // ★ 참고: 교재에는 없음, Boot 4에서 필요
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+	testImplementation 'org.testcontainers:testcontainers-junit-jupiter'  // ★ 참고: 교재: org.testcontainers:junit-jupiter
+	testImplementation 'org.testcontainers:testcontainers-mongodb'  // ★ 참고: 교재: org.testcontainers:mongodb
 	// ★ 추가 끝
 }
 
