@@ -73,13 +73,60 @@ function waitForService() {
   echo "DONE, continues..."
 }
 
-# ★ 추가 시작 (36줄)
+# ★ 추가 시작 (33줄)
+function testCompositeCreated() {
+
+    if ! assertCurl 200 "curl http://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS -s"
+    then
+        echo -n "FAIL"
+        return 1
+    fi
+
+    set +e
+    assertEqual "$PROD_ID_REVS_RECS" $(echo $RESPONSE | jq .productId)
+    if [ "$?" -eq "1" ] ; then return 1; fi
+
+    assertEqual 3 $(echo $RESPONSE | jq ".recommendations | length")
+    if [ "$?" -eq "1" ] ; then return 1; fi
+
+    assertEqual 3 $(echo $RESPONSE | jq ".reviews | length")
+    if [ "$?" -eq "1" ] ; then return 1; fi
+
+    set -e
+}
+
+function waitForMessageProcessing() {
+    echo "Wait for messages to be processed... "
+
+    sleep 1
+
+    n=0
+    until (testCompositeCreated)
+    do
+        n=$((n + 1))
+        if [[ $n == 40 ]]
+        then
+            echo " Give up"
+            exit 1
+        else
+            sleep 6
+            echo -n ", retry #$n "
+        fi
+    done
+    echo "All messages are now processed!"
+}
+# ★ 추가 끝
+
 function recreateComposite() {
   local productId=$1
   local composite=$2
 
-  assertCurl 200 "curl -X DELETE http://$HOST:$PORT/product-composite/${productId} -s"
-  curl -X POST http://$HOST:$PORT/product-composite -H "Content-Type: application/json" --data "$composite"
+  # ★ 변경 시작 (전 2줄 → 2줄) — "전:" 줄은 지우고 그 아래 줄로 바꾼다
+  # ★ 전: assertCurl 200 "curl -X DELETE http://$HOST:$PORT/product-composite/${productId} -s"
+  # ★ 전: curl -X POST http://$HOST:$PORT/product-composite -H "Content-Type: application/json" --data "$composite"
+  assertCurl 202 "curl -X DELETE http://$HOST:$PORT/product-composite/${productId} -s"
+  assertEqual 202 $(curl -X POST -s http://$HOST:$PORT/product-composite -H "Content-Type: application/json" --data "$composite" -w "%{http_code}")
+  # ★ 변경 끝
 }
 
 function setupTestdata() {
@@ -116,7 +163,6 @@ function setupTestdata() {
   recreateComposite "$PROD_ID_REVS_RECS" "$body"
 
 }
-# ★ 추가 끝
 
 set -e
 
@@ -135,11 +181,12 @@ then
 fi
 
 # ★ 변경 시작 (전 1줄 → 2줄) — "전:" 줄은 지우고 그 아래 줄로 바꾼다
-# ★ 전: waitForService curl http://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS
-waitForService curl -X DELETE http://$HOST:$PORT/product-composite/$PROD_ID_NOT_FOUND
-
+# ★ 전: waitForService curl -X DELETE http://$HOST:$PORT/product-composite/$PROD_ID_NOT_FOUND
+waitForService curl http://$HOST:$PORT/actuator/health
 setupTestdata
 # ★ 변경 끝
+
+waitForMessageProcessing  # ★ 변경 (전: setupTestdata)
 
 assertCurl 200 "curl http://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS -s"
 assertEqual $PROD_ID_REVS_RECS $(echo $RESPONSE | jq .productId)

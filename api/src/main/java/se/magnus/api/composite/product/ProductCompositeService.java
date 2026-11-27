@@ -4,16 +4,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-// ★ 변경 시작 (전 2줄 → 1줄) — "전:" 줄은 지우고 그 아래 줄로 바꾼다
-// ★ 전: import org.springframework.web.bind.annotation.GetMapping;
-// ★ 전: import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.http.HttpStatus;  // ★ 추가
 import org.springframework.web.bind.annotation.*;
-// ★ 변경 끝
+import reactor.core.publisher.Mono;  // ★ 추가
 
 @Tag(name = "ProductComposite", description = "REST API for composite product information.")
 public interface ProductCompositeService {
 
-  // ★ 추가 시작 (11줄) — POST: 생성
   @Operation(
     summary = "${api.product-composite.create-composite-product.description}",
     description = "${api.product-composite.create-composite-product.notes}")
@@ -21,11 +18,11 @@ public interface ProductCompositeService {
     @ApiResponse(responseCode = "400", description = "${api.responseCodes.badRequest.description}"),
     @ApiResponse(responseCode = "422", description = "${api.responseCodes.unprocessableEntity.description}")
   })
+  @ResponseStatus(HttpStatus.ACCEPTED)  // ★ 추가
   @PostMapping(
     value    = "/product-composite",
     consumes = "application/json")
-  void createProduct(@RequestBody ProductAggregate body);
-  // ★ 추가 끝
+  Mono<Void> createProduct(@RequestBody ProductAggregate body);  // ★ 변경 (전: void createProduct(@RequestBody ProductAggregate body);)
 
   @Operation(
     summary = "${api.product-composite.get-composite-product.description}",
@@ -39,9 +36,8 @@ public interface ProductCompositeService {
   @GetMapping(
     value = "/product-composite/{productId}",
     produces = "application/json")
-  ProductAggregate getProduct(@PathVariable int productId);
+  Mono<ProductAggregate> getProduct(@PathVariable int productId);  // ★ 변경 (전: ProductAggregate getProduct(@PathVariable int productId);)
 
-  // ★ 추가 시작 (9줄) — DELETE: 삭제
   @Operation(
     summary = "${api.product-composite.delete-composite-product.description}",
     description = "${api.product-composite.delete-composite-product.notes}")
@@ -49,7 +45,7 @@ public interface ProductCompositeService {
     @ApiResponse(responseCode = "400", description = "${api.responseCodes.badRequest.description}"),
     @ApiResponse(responseCode = "422", description = "${api.responseCodes.unprocessableEntity.description}")
   })
+  @ResponseStatus(HttpStatus.ACCEPTED)  // ★ 추가
   @DeleteMapping(value = "/product-composite/{productId}")
-  void deleteProduct(@PathVariable int productId);
-  // ★ 추가 끝
+  Mono<Void> deleteProduct(@PathVariable int productId);  // ★ 변경 (전: void deleteProduct(@PathVariable int productId);)
 }

@@ -1,5 +1,7 @@
 package se.magnus.microservices.core.review.persistence;
 
+import static java.lang.String.format;  // ★ 추가
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,4 +33,11 @@ public class ReviewEntity {
     this.subject = subject;
     this.content = content;
   }
-}
+
+  // ★ 추가 시작 (3줄) — 로그에 엔티티를 짧게 찍기 위해
+  @Override
+  public String toString() {
+    return format("ReviewEntity: %s/%d", productId, reviewId);
+  // ★ 추가 끝
+  }
+}  // ★ 추가

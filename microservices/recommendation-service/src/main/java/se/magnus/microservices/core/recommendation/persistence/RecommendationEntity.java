@@ -1,5 +1,7 @@
 package se.magnus.microservices.core.recommendation.persistence;
 
+import static java.lang.String.format;  // ★ 추가
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -34,4 +36,11 @@ public class RecommendationEntity {
     this.rating = rating;
     this.content = content;
   }
-}
+
+  // ★ 추가 시작 (3줄) — 로그에 엔티티를 짧게 찍기 위해
+  @Override
+  public String toString() {
+    return format("RecommendationEntity: %s/%d", productId, recommendationId);
+  // ★ 추가 끝
+  }
+}  // ★ 추가

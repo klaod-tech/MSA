@@ -4,33 +4,39 @@ services:
     mem_limit: 512m
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-    # ★ 추가 시작 (3줄)
     depends_on:
       mongodb:
+        # ★ 추가 시작 (2줄)
         condition: service_healthy
-    # ★ 추가 끝
+      rabbitmq:
+        # ★ 추가 끝
+        condition: service_healthy
 
   recommendation:
     build: microservices/recommendation-service
     mem_limit: 512m
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-    # ★ 추가 시작 (3줄)
     depends_on:
       mongodb:
         condition: service_healthy
-    # ★ 추가 끝
+      # ★ 추가 시작 (2줄)
+      rabbitmq:
+        condition: service_healthy
+      # ★ 추가 끝
 
   review:
     build: microservices/review-service
     mem_limit: 512m
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-    # ★ 추가 시작 (3줄)
     depends_on:
       mysql:
         condition: service_healthy
-    # ★ 추가 끝
+      # ★ 추가 시작 (2줄)
+      rabbitmq:
+        condition: service_healthy
+      # ★ 추가 끝
 
   product-composite:
     build: microservices/product-composite-service
@@ -39,8 +45,12 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    # ★ 추가 시작 (3줄)
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    # ★ 추가 끝
 
-  # ★ 추가 시작 (26줄)
   mongodb:
     image: mongo:8.0.5
     mem_limit: 512m
@@ -50,7 +60,7 @@ services:
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh --quiet
       interval: 5s
-      timeout: 10s  # ★ 참고: 교재: 2s
+      timeout: 10s  # ★ 참고: 교재와 다름 (교재: 2s, 6장 트러블슈팅)
       retries: 60
 
   mysql:
@@ -66,6 +76,19 @@ services:
     healthcheck:
       test: "/usr/bin/mysql --user=user --password=pwd --execute \"SHOW DATABASES;\""
       interval: 5s
-      timeout: 10s  # ★ 참고: 교재: 2s
+      timeout: 10s  # ★ 참고: 교재와 다름 (교재: 2s, 6장 트러블슈팅)
+      retries: 60
+
+  # ★ 추가 시작 (11줄)
+  rabbitmq:
+    image: rabbitmq:4.0.7-management
+    mem_limit: 512m
+    ports:
+      - 5672:5672
+      - 15672:15672
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 5s
+      timeout: 10s  # 교재와 다름 (교재: 2s, 6장 트러블슈팅)
       retries: 60
   # ★ 추가 끝
