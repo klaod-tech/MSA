@@ -1,9 +1,17 @@
 spring.application.name: product-service
 
 server.port: 7002
-spring.web.error.include-message: always      # ★ 교재와 다름 (교재: server.error.include-message)
+spring.web.error.include-message: always
 
 logging:
   level:
     root: INFO
     se.magnus: DEBUG
+
+
+# ★ 추가 시작 (3줄)
+---
+spring.config.activate.on-profile: docker
+
+server.port: 8080
+# ★ 추가 끝
