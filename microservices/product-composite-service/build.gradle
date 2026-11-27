@@ -13,6 +13,12 @@ java {
 	}
 }
 
+// ★ 추가 시작 (3줄)
+ext {
+	springCloudVersion = '2025.1.4'  // (교재: 2025.0.0)
+}
+// ★ 추가 끝
+
 repositories {
 	mavenCentral()
 }
@@ -25,9 +31,23 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation project(':api')
 	implementation project(':util')
-	implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:3.0.3'  // ★ 추가 — 교재: 2.8.6
+	implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:3.0.3'
+	// ★ 추가 시작 (4줄) — 교재에는 없음, Boot 4: WebClient.Builder 제공
+	implementation 'org.springframework.boot:spring-boot-starter-webclient'
+	implementation 'org.springframework.cloud:spring-cloud-starter-stream-rabbit'
+	implementation 'org.springframework.cloud:spring-cloud-starter-stream-kafka'
+	testImplementation 'org.springframework.cloud:spring-cloud-stream-test-binder'
+	// ★ 추가 끝
 
 }
+
+// ★ 추가 시작 (5줄)
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+// ★ 추가 끝
 
 tasks.named('test') {
 	useJUnitPlatform()
