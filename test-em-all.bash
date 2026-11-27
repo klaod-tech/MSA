@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : ${HOST=localhost}
-: ${PORT=7001}
+: ${PORT=8080}                                      # ★ ① 변경 (3장: 7001)
 : ${PROD_ID_REVS_RECS=1}
 : ${PROD_ID_NOT_FOUND=13}
 : ${PROD_ID_NO_RECS=113}
@@ -44,10 +44,52 @@ function assertEqual() {
   fi
 }
 
+function testUrl() {                                # ★ ② 추가
+  url=$@                                            # ★ ② 추가
+  if $url -ks -f -o /dev/null                       # ★ ② 추가
+  then                                              # ★ ② 추가
+    return 0                                        # ★ ② 추가
+  else                                              # ★ ② 추가
+    return 1                                        # ★ ② 추가
+  fi;                                               # ★ ② 추가
+}                                                   # ★ ② 추가
+
+function waitForService() {                         # ★ ② 추가
+  url=$@                                            # ★ ② 추가
+  echo -n "Wait for: $url... "                      # ★ ② 추가
+  n=0                                               # ★ ② 추가
+  until testUrl $url                                # ★ ② 추가
+  do                                                # ★ ② 추가
+    n=$((n + 1))                                    # ★ ② 추가
+    if [[ $n == 100 ]]                              # ★ ② 추가
+    then                                            # ★ ② 추가
+      echo " Give up"                               # ★ ② 추가
+      exit 1                                        # ★ ② 추가
+    else                                            # ★ ② 추가
+      sleep 3                                       # ★ ② 추가
+      echo -n ", retry #$n "                        # ★ ② 추가
+    fi                                              # ★ ② 추가
+  done                                              # ★ ② 추가
+  echo "DONE, continues..."                         # ★ ② 추가
+}                                                   # ★ ② 추가
+
 set -e
+
+echo "Start Tests:" `date`                          # ★ ③ 추가
 
 echo "HOST=${HOST}"
 echo "PORT=${PORT}"
+
+if [[ $@ == *"start"* ]]                            # ★ ③ 추가
+then                                                # ★ ③ 추가
+  echo "Restarting the test environment..."         # ★ ③ 추가
+  echo "$ docker compose down --remove-orphans"     # ★ ③ 추가
+  docker compose down --remove-orphans              # ★ ③ 추가
+  echo "$ docker compose up -d"                     # ★ ③ 추가
+  docker compose up -d                              # ★ ③ 추가
+fi                                                  # ★ ③ 추가
+
+waitForService curl http://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS  # ★ ③ 추가
 
 assertCurl 200 "curl http://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS -s"
 assertEqual $PROD_ID_REVS_RECS $(echo $RESPONSE | jq .productId)
@@ -72,5 +114,12 @@ assertEqual "\"Invalid productId: -1\"" "$(echo $RESPONSE | jq .message)"
 
 assertCurl 400 "curl http://$HOST:$PORT/product-composite/invalidProductId -s"
 assertEqual "\"Type mismatch.\"" "$(echo $RESPONSE | jq .message)"
+
+if [[ $@ == *"stop"* ]]                             # ★ ④ 추가
+then                                                # ★ ④ 추가
+    echo "We are done, stopping the test environment..."  # ★ ④ 추가
+    echo "$ docker compose down"                    # ★ ④ 추가
+    docker compose down                             # ★ ④ 추가
+fi                                                  # ★ ④ 추가
 
 echo "End, all tests OK:" `date`
