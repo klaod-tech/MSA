@@ -1,0 +1,9 @@
+spring.application.name: product-service
+
+server.port: 7002
+spring.web.error.include-message: always      # ★ 교재와 다름 (교재: server.error.include-message)
+
+logging:
+  level:
+    root: INFO
+    se.magnus: DEBUG
