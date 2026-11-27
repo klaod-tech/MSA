@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 : ${HOST=localhost}
-: ${PORT=8080}                                      # ★ ① 변경 (3장: 7001)
+: ${PORT=8080}
 : ${PROD_ID_REVS_RECS=1}
 : ${PROD_ID_NOT_FOUND=13}
 : ${PROD_ID_NO_RECS=113}
@@ -44,52 +44,52 @@ function assertEqual() {
   fi
 }
 
-function testUrl() {                                # ★ ② 추가
-  url=$@                                            # ★ ② 추가
-  if $url -ks -f -o /dev/null                       # ★ ② 추가
-  then                                              # ★ ② 추가
-    return 0                                        # ★ ② 추가
-  else                                              # ★ ② 추가
-    return 1                                        # ★ ② 추가
-  fi;                                               # ★ ② 추가
-}                                                   # ★ ② 추가
+function testUrl() {
+  url=$@
+  if $url -ks -f -o /dev/null
+  then
+    return 0
+  else
+    return 1
+  fi;
+}
 
-function waitForService() {                         # ★ ② 추가
-  url=$@                                            # ★ ② 추가
-  echo -n "Wait for: $url... "                      # ★ ② 추가
-  n=0                                               # ★ ② 추가
-  until testUrl $url                                # ★ ② 추가
-  do                                                # ★ ② 추가
-    n=$((n + 1))                                    # ★ ② 추가
-    if [[ $n == 100 ]]                              # ★ ② 추가
-    then                                            # ★ ② 추가
-      echo " Give up"                               # ★ ② 추가
-      exit 1                                        # ★ ② 추가
-    else                                            # ★ ② 추가
-      sleep 3                                       # ★ ② 추가
-      echo -n ", retry #$n "                        # ★ ② 추가
-    fi                                              # ★ ② 추가
-  done                                              # ★ ② 추가
-  echo "DONE, continues..."                         # ★ ② 추가
-}                                                   # ★ ② 추가
+function waitForService() {
+  url=$@
+  echo -n "Wait for: $url... "
+  n=0
+  until testUrl $url
+  do
+    n=$((n + 1))
+    if [[ $n == 100 ]]
+    then
+      echo " Give up"
+      exit 1
+    else
+      sleep 3
+      echo -n ", retry #$n "
+    fi
+  done
+  echo "DONE, continues..."
+}
 
 set -e
 
-echo "Start Tests:" `date`                          # ★ ③ 추가
+echo "Start Tests:" `date`
 
 echo "HOST=${HOST}"
 echo "PORT=${PORT}"
 
-if [[ $@ == *"start"* ]]                            # ★ ③ 추가
-then                                                # ★ ③ 추가
-  echo "Restarting the test environment..."         # ★ ③ 추가
-  echo "$ docker compose down --remove-orphans"     # ★ ③ 추가
-  docker compose down --remove-orphans              # ★ ③ 추가
-  echo "$ docker compose up -d"                     # ★ ③ 추가
-  docker compose up -d                              # ★ ③ 추가
-fi                                                  # ★ ③ 추가
+if [[ $@ == *"start"* ]]
+then
+  echo "Restarting the test environment..."
+  echo "$ docker compose down --remove-orphans"
+  docker compose down --remove-orphans
+  echo "$ docker compose up -d"
+  docker compose up -d
+fi
 
-waitForService curl http://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS  # ★ ③ 추가
+waitForService curl http://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS
 
 assertCurl 200 "curl http://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS -s"
 assertEqual $PROD_ID_REVS_RECS $(echo $RESPONSE | jq .productId)
@@ -115,11 +115,23 @@ assertEqual "\"Invalid productId: -1\"" "$(echo $RESPONSE | jq .message)"
 assertCurl 400 "curl http://$HOST:$PORT/product-composite/invalidProductId -s"
 assertEqual "\"Type mismatch.\"" "$(echo $RESPONSE | jq .message)"
 
-if [[ $@ == *"stop"* ]]                             # ★ ④ 추가
-then                                                # ★ ④ 추가
-    echo "We are done, stopping the test environment..."  # ★ ④ 추가
-    echo "$ docker compose down"                    # ★ ④ 추가
-    docker compose down                             # ★ ④ 추가
-fi                                                  # ★ ④ 추가
+# ★ 추가 시작 (9줄)
+echo "Swagger/OpenAPI tests"
+assertCurl 302 "curl -s  http://$HOST:$PORT/openapi/swagger-ui.html"
+assertCurl 200 "curl -sL http://$HOST:$PORT/openapi/swagger-ui.html"
+assertCurl 200 "curl -s  http://$HOST:$PORT/openapi/swagger-ui/index.html"
+assertCurl 200 "curl -s  http://$HOST:$PORT/openapi/swagger-ui/oauth2-redirect.html"
+assertCurl 200 "curl -s  http://$HOST:$PORT/openapi/v3/api-docs"
+assertEqual "3.1.0" "$(echo $RESPONSE | jq -r .openapi)"
+assertEqual "http://$HOST:$PORT" "$(echo $RESPONSE | jq -r '.servers[0].url')"
+assertCurl 200 "curl -s  http://$HOST:$PORT/openapi/v3/api-docs.yaml"
+# ★ 추가 끝
+
+if [[ $@ == *"stop"* ]]
+then
+    echo "We are done, stopping the test environment..."
+    echo "$ docker compose down"
+    docker compose down
+fi
 
 echo "End, all tests OK:" `date`

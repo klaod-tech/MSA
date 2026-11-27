@@ -3,7 +3,7 @@ plugins {
 	id 'org.springframework.boot' version '4.0.9'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
-jar { enabled = false }  // ★ 추가
+jar { enabled = false }
 group = 'se.magnus.microservices.composite.product'
 version = '1.0.0-SNAPSHOT'
 
@@ -23,10 +23,10 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-actuator-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webflux-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	// ★ 추가 시작 (2줄)
 	implementation project(':api')
 	implementation project(':util')
-	// ★ 추가 끝
+	implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:3.0.3'  // ★ 추가 — 교재: 2.8.6
+
 }
 
 tasks.named('test') {
